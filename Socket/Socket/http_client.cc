@@ -116,21 +116,7 @@ int main(int argc, char * argv[]) {
     printf("Read: %s", buf);
     printf("I READ STUFF\n");
 
-
-    /*if(select(s, NULL, NULL, NULL, 0) < 0)
-    {
-        printf("Response Has Been Recieved! Processing Data Now.\n");
-
-
-
-
-
-        printf("%s", buf);
-
-        *//**//* first read loop -- read headers *//**//*
-
-
-        *//**//* examine return code *//**//*
+	 *//**//* examine return code *//**//*
 
         //Skip "HTTP/1.0"
         //remove the '\0'
@@ -139,12 +125,7 @@ int main(int argc, char * argv[]) {
 
         *//**//* print first part of response: header, error code, etc. *//**//*
 
-        *//**//* second read loop -- print out the rest of the response: real web content *//**//*
-
-
-    }*/
-
-
+        *//**//* second read loop -- print out the rest of the response: real web content *//**//
 
 
 
