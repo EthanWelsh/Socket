@@ -13,12 +13,10 @@
 #import <assert.h>
 #include <unistd.h>
 
-
 #define BUFSIZE 1024
 
-
-int main(int argc, char * argv[]) {
-
+int main(int argc, char * argv[])
+{
     char * server_name = NULL;
     int server_port    = -1;
     char * server_path = NULL;
@@ -46,12 +44,11 @@ int main(int argc, char * argv[]) {
     req = (char *)malloc(strlen("GET  HTTP/1.0\r\n\r\n")+strlen(server_path)+1);
 
     /* initialize */
-
     if (toupper(*(argv[1])) == 'K')
     {
         /* UNCOMMENT FOR MINET
          * minet_init(MINET_KERNEL);
-             */
+        */
     }
     else if (toupper(*(argv[1])) == 'U')
     {
@@ -73,7 +70,6 @@ int main(int argc, char * argv[]) {
     }
 
     /* get host IP address  */
-    /* Hint: use gethostbyname() */
     if ((hp = gethostbyname(argv[1])) == NULL)
     {  //error processing;
         printf("DNS could not locate the page you asked for.\n");
@@ -116,17 +112,16 @@ int main(int argc, char * argv[]) {
         /* print first part of response: header, error code, etc. */
 
         /* second read loop -- print out the rest of the response: real web content */
-
-
-    }
-
-
-
-    /*close socket and deinitialize */
-
-    if (ok) {
+	}
+	
+	/*close socket and deinitialize */
+	
+    if (ok)
+	{
         return 0;
-    } else {
+    }
+	else
+	{
         return -1;
     }
 }
