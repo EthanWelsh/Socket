@@ -90,7 +90,9 @@ int main(int argc, char * argv[])
 
     /* send request message */
     sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
-
+	
+	write(s, req, sizeof(req));
+	 
     /* wait till socket can be read. */
     /* Hint: use select(), and ignore timeout for now. */
     if(select((s + 1), NULL, NULL, NULL, 0) < 0)
