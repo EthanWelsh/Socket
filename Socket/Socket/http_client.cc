@@ -65,14 +65,17 @@ int main(int argc, char * argv[])
     /* make socket */
     if ((s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     { //error processing;
-        printf("Failed to establish socket.\n");
+        fprintf(stderr, "Failed to establish socket.\n");
+		free(req);	// Free the space called in the malloc
         return -1;
     }
 
     /* get host IP address  */
     if ((hp = gethostbyname(argv[1])) == NULL)
     {  //error processing;
-        printf("DNS could not locate the page you asked for.\n");
+		fprintf(stderr, "DNS could not locate the page you asked for.\n");
+		free(req);	// Free the space called in the malloc
+		close(s);	// close the socket
         return -1;
     }
 
@@ -84,21 +87,27 @@ int main(int argc, char * argv[])
     /* connect to the server socket */
     if (connect(s, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
     { //error processing;
-        printf("We couldn't establish a connection\n");
+        fprintf(stderr, "We could not establish a connection.\n");
+		free(req);	// Free the space called in the malloc
+		close(s);	// close the socket
         return -1;
     }
 
     /* send request message */
     sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
+	if(write(s, req, sizeof(req))< 0)
+	{
+		// Error handling
+		fprintf(stderr, "Encountered a Write error.\n");
+		free(req);	// Free the space called in the malloc
+		close(s);	// close the socket
+	}
 	
-	write(s, req, sizeof(req));
-	 
-    /* wait till socket can be read. */
+	/* wait till socket can be read. */
     /* Hint: use select(), and ignore timeout for now. */
     if(select((s + 1), NULL, NULL, NULL, 0) < 0)
     {
         read(s, buf, BUFSIZE);
-
         printf("%s", buf);
 
         /* first read loop -- read headers */
