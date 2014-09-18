@@ -25,7 +25,7 @@ int main(int argc, char * argv[]) {
     char * req         = NULL;
     bool ok            = false;
 
-    int s;
+    int socketID;
     int len;
     int res;
     char buf[BUFSIZE];
@@ -66,7 +66,7 @@ int main(int argc, char * argv[]) {
     }
 
     /* make socket */
-    if ((s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+    if ((socketID = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     { //error processing;
         printf("Failed to establish socket.\n");
         return -1;
@@ -74,7 +74,7 @@ int main(int argc, char * argv[]) {
 
     /* get host IP address  */
     /* Hint: use gethostbyname() */
-    if ((hp = gethostbyname(argv[1])) == NULL)
+    if ((hp = gethostbyname(server_name)) == NULL)
     {  //error processing;
         printf("DNS could not locate the page you asked for.\n");
         return -1;
@@ -85,40 +85,66 @@ int main(int argc, char * argv[]) {
     memcpy(&saddr.sin_addr.s_addr, hp->h_addr, hp->h_length);  /* TODO CHANGED LENGTH TO H_LENGTH*/
     saddr.sin_port = htons(server_port);
 
+    printf("Connecting to Server...\n");
+
     /* connect to the server socket */
-    if (connect(s, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
+    if (connect(socketID, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
     { //error processing;
         printf("We couldn't establish a connection\n");
         return -1;
     }
 
+    printf("Connection has Been Established\n");
+
     /* send request message */
     sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
 
+
+
+
+    printf("Writing the following request to host:\n %s", req);
+
+    send(socketID, req, sizeof(req) / sizeof(req[0]), 0);
+
+    printf("Written\n");
+
     /* wait till socket can be read. */
     /* Hint: use select(), and ignore timeout for now. */
-    if(select((s + 1), NULL, NULL, NULL, 0) < 0)
+
+    read(socketID, buf, BUFSIZE);
+
+    printf("Read: %s", buf);
+    printf("I READ STUFF\n");
+
+
+    /*if(select(s, NULL, NULL, NULL, 0) < 0)
     {
-        read(s, buf, BUFSIZE);
+        printf("Response Has Been Recieved! Processing Data Now.\n");
+
+
+
+
 
         printf("%s", buf);
 
-        /* first read loop -- read headers */
+        *//**//* first read loop -- read headers *//**//*
 
 
-        /* examine return code */
+        *//**//* examine return code *//**//*
 
         //Skip "HTTP/1.0"
         //remove the '\0'
 
         // Normal reply has return code 200
 
-        /* print first part of response: header, error code, etc. */
+        *//**//* print first part of response: header, error code, etc. *//**//*
 
-        /* second read loop -- print out the rest of the response: real web content */
+        *//**//* second read loop -- print out the rest of the response: real web content *//**//*
 
 
-    }
+    }*/
+
+
 
 
 
