@@ -1,3 +1,10 @@
+/*
+	Joshua Miner	- jmm299
+	Ethan Welsh		- 
+	CS1652 Fall 2014
+	Project 1- http_client.cc
+*/
+
 /* UNCOMMENT FOR MINET
  * #include "minet_socket.h"
  */
@@ -5,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <ctype.h>
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
@@ -13,13 +21,11 @@
 #import <assert.h>
 #include <unistd.h>
 
-
 #define BUFSIZE 1024
 
-
-int main(int argc, char * argv[]) {
-
-    char * server_name = NULL;
+int main(int argc, char * argv[])
+{
+	char * server_name = NULL;
     int server_port    = -1;
     char * server_path = NULL;
     char * req         = NULL;
@@ -45,13 +51,18 @@ int main(int argc, char * argv[]) {
 
     req = (char *)malloc(strlen("GET  HTTP/1.0\r\n\r\n")+strlen(server_path)+1);
 
-    /* initialize */
-
+	if (server_port<= 0 || server_port> 65535) 
+	{
+		// If the port number is not valid
+    	fprint(stderr, "Port number is invalid. Aborting.\n");
+    }
+    
+	/* initialize */
     if (toupper(*(argv[1])) == 'K')
     {
         /* UNCOMMENT FOR MINET
          * minet_init(MINET_KERNEL);
-             */
+        */
     }
     else if (toupper(*(argv[1])) == 'U')
     {
@@ -66,7 +77,7 @@ int main(int argc, char * argv[]) {
     }
 
     /* make socket */
-    if ((socketID = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+    if ((socketID= socket(AF_INET, SOCK_STREAM, IPPROTO_TCP))< 0)
     { //error processing;
         printf("Failed to establish socket.\n");
         return -1;
@@ -93,47 +104,47 @@ int main(int argc, char * argv[]) {
         printf("We couldn't establish a connection\n");
         return -1;
     }
-
     printf("Connection has Been Established\n");
-
+	// Set up of connection is completed
+	
     /* send request message */
-    sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
-
-
-
+    printf("Processing the request and sending it");
+	
+	sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
 
     printf("Writing the following request to host:\n %s", req);
-
+/*
     send(socketID, req, sizeof(req) / sizeof(req[0]), 0);
 
     printf("Written\n");
 
-    /* wait till socket can be read. */
-    /* Hint: use select(), and ignore timeout for now. */
+    //wait till socket can be read.
+    // Hint: use select(), and ignore timeout for now. 
 
     read(socketID, buf, BUFSIZE);
 
     printf("Read: %s", buf);
     printf("I READ STUFF\n");
 
-	 *//**//* examine return code *//**//*
+	// examine return code
 
-        //Skip "HTTP/1.0"
-        //remove the '\0'
+	//Skip "HTTP/1.0"
+	//remove the '\0'
 
-        // Normal reply has return code 200
+	// Normal reply has return code 200
 
-        *//**//* print first part of response: header, error code, etc. *//**//*
+	// print first part of response: header, error code, etc.
 
-        *//**//* second read loop -- print out the rest of the response: real web content *//**//
+	// second read loop -- print out the rest of the response: real web content
 
-
-
-    /*close socket and deinitialize */
-
-    if (ok) {
+    // close socket and deinitialize 
+*/
+    if(ok)
+	{
         return 0;
-    } else {
+    }
+	else
+	{
         return -1;
     }
 }
