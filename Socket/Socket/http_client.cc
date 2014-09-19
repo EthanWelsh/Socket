@@ -17,7 +17,6 @@
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <netdb.h>
-#include <sys/_select.h>
 #import <assert.h>
 #include <unistd.h>
 
@@ -54,7 +53,7 @@ int main(int argc, char * argv[])
 	if (server_port<= 0 || server_port> 65535) 
 	{
 		// If the port number is not valid
-    	fprint(stderr, "Port number is invalid. Aborting.\n");
+    	fprintf(stderr, "Port number is invalid. Aborting.\n");
     }
     
 	/* initialize */
