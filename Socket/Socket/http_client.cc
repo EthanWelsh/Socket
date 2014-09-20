@@ -5,10 +5,7 @@
 	Project 1- http_client.cc
 */
 
-/* UNCOMMENT FOR MINET
- * #include "minet_socket.h"
- */
-
+#include "minet_socket.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,24 +16,33 @@
 #include <netdb.h>
 #import <assert.h>
 #include <unistd.h>
+#include <iostream>
+
+using namespace std;
 
 #define BUFSIZE 1024
 
 int main(int argc, char * argv[])
 {
-	char * server_name = NULL;
-    int server_port    = -1;
-    char * server_path = NULL;
-    char * req         = NULL;
-    bool ok            = false;
+	char * server_name = NULL;	// Store the server name
+    int server_port    = -1;	// Store the port for the server
+    char * server_path = NULL;	// Path to the server
+    char * req         = NULL;	
+    bool ok            = false;	// Used to make sure that everything is good
 
-    int socketID;
-    int len;
-    int res;
-    char buf[BUFSIZE];
+    int socketID;		// id of the socket
+    int len;		// length
+    int res;	// store the result
+    char buf[BUFSIZE];		// buffer
     struct hostent *hp;
     struct sockaddr_in saddr;
-
+	int socket_fd;	// File descriptor
+	fd_set fds;
+	string response = "";	// Hold response 
+	string header = "";	// Hold the header for processing
+	string status;		// Hold the expected status code
+	string::size_type position;
+	
     /*parse args */
     if (argc != 5)
     {
@@ -54,32 +60,32 @@ int main(int argc, char * argv[])
 	{
 		// If the port number is not valid
     	fprintf(stderr, "Port number is invalid. Aborting.\n");
+		free(req);
+		return -1;
     }
     
 	/* initialize */
     if (toupper(*(argv[1])) == 'K')
     {
-        /* UNCOMMENT FOR MINET
-         * minet_init(MINET_KERNEL);
-        */
+		minet_init(MINET_KERNEL);
     }
     else if (toupper(*(argv[1])) == 'U')
     {
-        /* UNCOMMENT FOR MINET
-         * minet_init(MINET_USER);
-         */
+        minet_init(MINET_USER);
     }
     else
     {
-        fprintf(stderr, "First argument must be k or u\n");
-        exit(-1);
+        fprintf(stderr, "First argument must be k or u\n");	// Improper option
+		free(req);	// Free space used in malloc
+        exit(-1);	// return error
     }
 
     /* make socket */
-    if ((socketID= socket(AF_INET, SOCK_STREAM, IPPROTO_TCP))< 0)
+    if ((socket_fd= minet_socket(SOCK_STREAM)) < 0)
     { //error processing;
-        printf("Failed to establish socket.\n");
-        return -1;
+        printf("Failed to establish socket.\n");	// Encountered error
+		free(req);	// Free space in malloc
+        return -1;	// return error
     }
 
     /* get host IP address  */
@@ -87,7 +93,8 @@ int main(int argc, char * argv[])
     if ((hp = gethostbyname(server_name)) == NULL)
     {  //error processing;
         printf("DNS could not locate the page you asked for.\n");
-        return -1;
+        free(req);
+		return -1;
     }
 
     /* set address */
@@ -98,32 +105,46 @@ int main(int argc, char * argv[])
     printf("Connecting to Server...\n");
 
     /* connect to the server socket */
-    if (connect(socketID, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
+    if (minet_connect(socket_fd, &saddr)< 0)
     { //error processing;
         printf("We couldn't establish a connection\n");
-        return -1;
+        free(req);
+		return -1;
     }
     printf("Connection has Been Established\n");
 	// Set up of connection is completed
 	
     /* send request message */
     printf("Processing the request and sending it");
-	
 	sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
-
-    printf("Writing the following request to host:\n %s", req);
-/*
-    send(socketID, req, sizeof(req) / sizeof(req[0]), 0);
-
-    printf("Written\n");
-
-    //wait till socket can be read.
-    // Hint: use select(), and ignore timeout for now. 
-
-    read(socketID, buf, BUFSIZE);
-
-    printf("Read: %s", buf);
-    printf("I READ STUFF\n");
+	if(minet_write(socket_fd, req, strlen(req))<= 0)
+	{
+		printf("Writing the following request to host:\n %s", req);
+		fprintf(stderr, "There was an issue sending the message to the server.\n");
+		free(req);
+		return -1;
+	}
+	
+	printf("Written\n");
+	
+	//wait till socket can be read.	====	use select(), and ignore timeout for now. 
+	FD_ZERO(&fds); // Clear out fd
+	FD_SET(socket_fd, &fds); // Adds socket file descriptor
+    if(minet_select(socket_fd+1, &fds, NULL, NULL, NULL)<0)
+	{
+		fprintf(stderr, "Error choosing a socket.\n");
+		free(req);
+		minet_close(socket_fd); // Close the socket
+		minet_deinit();	// De initialize the socket
+		return -1;
+	}
+	
+	// First loop
+	while(res= minet_read(socket_fd, buf, BUFSIZE-1)> 0)	// Read first portion
+	{
+		printf("I READ STUFF\n");
+	}
+	
 
 	// examine return code
 
@@ -131,12 +152,14 @@ int main(int argc, char * argv[])
 	//remove the '\0'
 
 	// Normal reply has return code 200
-
 	// print first part of response: header, error code, etc.
-
+	
 	// second read loop -- print out the rest of the response: real web content
 
     // close socket and deinitialize 
+	minet_close(socket_fd);
+	minet_deinit();
+	free(req);
 */
     if(ok)
 	{
