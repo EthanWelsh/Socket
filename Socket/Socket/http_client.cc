@@ -160,7 +160,7 @@ int main(int argc, char * argv[])
 	minet_close(socket_fd);
 	minet_deinit();
 	free(req);
-*/
+
     if(ok)
 	{
         return 0;
