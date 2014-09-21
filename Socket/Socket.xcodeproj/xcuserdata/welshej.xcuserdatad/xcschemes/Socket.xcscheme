@@ -16,8 +16,9 @@
       </BuildActionEntries>
    </BuildAction>
    <LaunchAction
-      useCustomWorkingDirectory = "NO"
-      buildConfiguration = "Debug">
+      useCustomWorkingDirectory = "YES"
+      buildConfiguration = "Debug"
+      customWorkingDirectory = "/Users/welshej/github/Socket/Socket">
       <BuildableProductRunnable>
          <BuildableReference
             BuildableIdentifier = "primary"

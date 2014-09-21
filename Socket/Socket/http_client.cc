@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#import <assert.h>
+#include <assert.h>
 #include <unistd.h>
 
 
@@ -22,7 +22,7 @@ int main(int argc, char * argv[])
     int server_port    = -1;
     char * server_path = NULL;
     char * req         = NULL;
-    bool ok            = false;
+
 
     int socketID;
     int len;
@@ -89,24 +89,17 @@ int main(int argc, char * argv[])
 
     sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
 
-    printf("Writing the following request to host:\n %s", req);
+    printf("Writing the following request to host:\n-----------------\n%s\n-----------------\n", req);
 
-    send(socketID, req, sizeof(req) / sizeof(req[0]), 0);
-
-    printf("Written\n");
-
+    send(socketID, req, strlen(req), 0);
 
 
     read(socketID, buf, BUFSIZE);
 
-    printf("Read: %s", buf);
-    printf("I READ STUFF\n");
+    printf("%s", buf);
 
 
 
-    if (ok) {
-        return 0;
-    } else {
-        return -1;
-    }
+
+    return 0;
 }
