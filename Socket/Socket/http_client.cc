@@ -169,9 +169,9 @@ int main(int argc, char * argv[])
 		cerr << header + "\r\n\r\n" + response; // Error encountered
 	}
 	// second read loop -- print out the rest of the response: real web content
-	while((res= read(socketID))>0)
+	while((res= read(socketID, buf, BUFSIZE-1))>0)
 	{
-		buf[result] = '\0';
+		buf[res] = '\0';
 		if(ok)
 		{
 			printf("%s", buf);
