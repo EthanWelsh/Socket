@@ -19,6 +19,8 @@
 #define BUFSIZE 1024
 
 
+using namespace std;
+
 int main(int argc, char * argv[])
 {
     char * server_name = NULL;
@@ -98,9 +100,6 @@ int main(int argc, char * argv[])
     memcpy(&saddr.sin_addr.s_addr, hp->h_addr, hp->h_length);  /* TODO CHANGED LENGTH TO H_LENGTH*/
     saddr.sin_port = htons(server_port);
 
-    printf("Connecting to Server...\n");
-
-
     if (connect(socketID, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
     { //error processing;
         printf("We couldn't establish a connection\n");
@@ -111,17 +110,13 @@ int main(int argc, char * argv[])
     printf("Connection has Been Established\n");
 
 	/* send request message */
-    printf("Processing the request and sending it");
 	sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
 	if(write(socketID, req, strlen(req))<= 0)
 	{
-		printf("Writing the following request to host:\n %s", req);
 		fprintf(stderr, "There was an issue sending the message to the server.\n");
 		free(req);
 		return -1;
 	}
-	
-	printf("Written\n");
 	
 	//wait till socket can be read.	====	use select(), and ignore timeout for now. 
 	FD_ZERO(&fds); // Clear out fd
@@ -137,12 +132,11 @@ int main(int argc, char * argv[])
 	// First loop
 	while((res= read(socketID, buf, BUFSIZE-1))> 0)	// Read first portion
 	{
-		printf("I READ STUFF\n");
 		buf[res]= '\0'; // Make empty string
-		response+= string(buf);
+		response+= std::string(buf);
 		position= response.find("\r\n\r\n", 0); // Find the position of this string
 		
-		if(position!= string::npos)	// Found the header
+		if(position!= std::string::npos)	// Found the header
 		{
 			header= response.substr(0, position); // Get the header
 			response= response.substr(position+4); // Get the response
@@ -154,6 +148,7 @@ int main(int argc, char * argv[])
 	// examine return code
 	//Skip "HTTP/1.0"
 	//remove the '\0'
+	
 	status = header.substr(header.find(" ") + 1); // Get status code
 	status = status.substr(0, status.find(" "));
 	
@@ -169,9 +164,15 @@ int main(int argc, char * argv[])
 		cerr << header + "\r\n\r\n" + response; // Error encountered
 	}
 	// second read loop -- print out the rest of the response: real web content
+<<<<<<< HEAD
 	while((res= read(socketID, buf, BUFSIZE-1))>0)
 	{
 		buf[res] = '\0';
+=======
+	while( (res = read(socketID, buf, BUFSIZE-1) ) >0)
+	{
+		buf[res] = '\0'; // TODO I edited this part. You had 'result' which isn't a thing. 
+>>>>>>> origin/master
 		if(ok)
 		{
 			printf("%s", buf);
@@ -194,3 +195,4 @@ int main(int argc, char * argv[])
         return -1;
     }
 }
+
