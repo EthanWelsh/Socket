@@ -1,6 +1,10 @@
-/* UNCOMMENT FOR MINET 
- * #include "minet_socket.h"
- */
+/*
+	Joshua Miner	- jmm299
+	Ethan Welsh		- 
+	CS1652 Fall 2014
+	Project 1- http_client.cc
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -17,38 +21,39 @@
 
 int handle_connection(int sock);
 
-int main(int argc, char * argv[]) {
+int main(int argc, char * argv[])
+{
     int server_port = -1;
     int rc          =  0;
     int sock        = -1;
 
     /* parse command line args */
-    if (argc != 3) {
-	fprintf(stderr, "usage: http_server1 k|u port\n");
-	exit(-1);
+    if (argc != 3) 
+	{
+		fprintf(stderr, "usage: http_server1 k|u port\n");
+		exit(-1);
     }
 
     server_port = atoi(argv[2]);
 
-    if (server_port < 1500) {
-	fprintf(stderr, "INVALID PORT NUMBER: %d; can't be < 1500\n", server_port);
-	exit(-1);
+    if (server_port < 1500)
+	{
+		fprintf(stderr, "INVALID PORT NUMBER: %d; can't be < 1500\n", server_port);
+		exit(-1);
     }
 
     /* initialize */
-    if (toupper(*(argv[1])) == 'K') { 
-	/* UNCOMMENT FOR MINET 
-	 * minet_init(MINET_KERNEL);
-         */
-    } else if (toupper(*(argv[1])) == 'U') { 
-	/* UNCOMMENT FOR MINET 
-	 * minet_init(MINET_USER);
-	 */
-    } else {
-	fprintf(stderr, "First argument must be k or u\n");
-	exit(-1);
+    if (toupper(*(argv[1])) == 'K')
+	{ 
+	}
+	else if (toupper(*(argv[1])) == 'U')
+	{ 
+	}
+	else
+	{
+		fprintf(stderr, "First argument must be k or u\n");
+		exit(-1);
     }
-
 
     /* initialize and make socket */
 
@@ -60,13 +65,15 @@ int main(int argc, char * argv[]) {
 
     /* connection handling loop: wait to accept connection */
 
-    while (1) {
-	/* handle connections */
-	rc = handle_connection(sock);
+    while (1)
+	{
+		/* handle connections */
+		rc = handle_connection(sock);
     }
 }
 
-int handle_connection(int sock) {
+int handle_connection(int sock)
+{
     bool ok = false;
 
     const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
@@ -87,20 +94,27 @@ int handle_connection(int sock) {
     /* try opening the file */
 
     /* send response */
-    if (ok) {
-	/* send headers */
+    
+	if (ok)
+	{
+		/* send headers */
 	
-	/* send file */
+		/* send file */
 	
-    } else {
-	// send error response
+    }
+	else
+	{
+		// send error response
     }
     
     /* close socket and free space */
   
-    if (ok) {
-	return 0;
-    } else {
-	return -1;
+    if (ok)
+	{
+		return 0;
+    }
+	else
+	{
+		return -1;
     }
 }
