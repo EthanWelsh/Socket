@@ -8,13 +8,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <ctype.h>
 
 #define BUFSIZE 1024
 #define FILENAMESIZE 100
