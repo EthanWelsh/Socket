@@ -110,17 +110,14 @@ int handle_connection(int sock)
 	"<h2>404 FILE NOT FOUND</h2>\n"
 	"</body></html>\n";
 
-    if(int new_socket = accept(sock, NULL, NULL)<0)
-    {
-        printf("Error opening new socket with accept.\n");
-        return -1;
-    }
+    int new_socket = accept(sock, NULL, NULL);
+
+
 
     /* first read loop -- get request and headers*/
-    if ((len = read(sock,  buf,  sizeof(buf)-1)) <= 0)
+    if ((len = read(new_socket,  buf,  sizeof(buf)-1)) > 0)
     {
-        printf("Error reading.\n");
-        return -1;
+        printf("READING");
     }
                                               
     buf[len] = '\0';
@@ -132,10 +129,9 @@ int handle_connection(int sock)
             buf[i] = toupper(buf[i]);
     }
 
-    if (write(sock, buf, len) <= 0)
+    if (write(new_socket, buf, len) > 0)
     {
-        printf("Error writting.\n");
-        return -1;
+        printf(" writting.\n");
     }
 
 

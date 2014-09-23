@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4986C1A05C0FCDE4B0B7EFFC /* client_minet.cc in Sources */ = {isa = PBXBuildFile; fileRef = 4986CEF0C9EDF9549E10E0CC /* client_minet.cc */; };
-		4986C8CAD37AB5E5F5EB6EE2 /* http_client.cc in Sources */ = {isa = PBXBuildFile; fileRef = 4986C4D4BA40AB60FEB4B826 /* http_client.cc */; };
-		4986C906D880FA0046DFCB64 /* http_client.c in Sources */ = {isa = PBXBuildFile; fileRef = 4986CF5757C402171B71EB20 /* http_client.c */; };
+		4986C7642A772BD68052B992 /* http_server2.cc in Sources */ = {isa = PBXBuildFile; fileRef = 4986C0D22AD6FA6A6D807371 /* http_server2.cc */; };
+		4986C9754FF42402D5840F81 /* http_server1.cc in Sources */ = {isa = PBXBuildFile; fileRef = 4986CA5ED95AF7154D2257FF /* http_server1.cc */; };
+		4986CF6A4DCDD3B9E24711D2 /* http_server3.cc in Sources */ = {isa = PBXBuildFile; fileRef = 4986C6AE1A3684C7D158C7F2 /* http_server3.cc */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,11 +25,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		4986C4D4BA40AB60FEB4B826 /* http_client.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = http_client.cc; sourceTree = "<group>"; };
-		4986C7F5DE13D1182743D80B /* Socket.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Socket.1; sourceTree = "<group>"; };
+		4986C0D22AD6FA6A6D807371 /* http_server2.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = http_server2.cc; sourceTree = "<group>"; };
+		4986C6AE1A3684C7D158C7F2 /* http_server3.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = http_server3.cc; sourceTree = "<group>"; };
+		4986CA5ED95AF7154D2257FF /* http_server1.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = http_server1.cc; sourceTree = "<group>"; };
 		4986CE57B6EBA8B2CB04A163 /* Socket */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Socket; sourceTree = BUILT_PRODUCTS_DIR; };
-		4986CEF0C9EDF9549E10E0CC /* client_minet.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = client_minet.cc; sourceTree = "<group>"; };
-		4986CF5757C402171B71EB20 /* http_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = http_client.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -46,10 +45,9 @@
 		4986C2E729D28E4B9E6CD421 /* Socket */ = {
 			isa = PBXGroup;
 			children = (
-				4986CF5757C402171B71EB20 /* http_client.c */,
-				4986C7F5DE13D1182743D80B /* Socket.1 */,
-				4986C4D4BA40AB60FEB4B826 /* http_client.cc */,
-				4986CEF0C9EDF9549E10E0CC /* client_minet.cc */,
+				4986C0D22AD6FA6A6D807371 /* http_server2.cc */,
+				4986C6AE1A3684C7D158C7F2 /* http_server3.cc */,
+				4986CA5ED95AF7154D2257FF /* http_server1.cc */,
 			);
 			path = Socket;
 			sourceTree = "<group>";
@@ -120,9 +118,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4986C906D880FA0046DFCB64 /* http_client.c in Sources */,
-				4986C8CAD37AB5E5F5EB6EE2 /* http_client.cc in Sources */,
-				4986C1A05C0FCDE4B0B7EFFC /* client_minet.cc in Sources */,
+				4986C7642A772BD68052B992 /* http_server2.cc in Sources */,
+				4986CF6A4DCDD3B9E24711D2 /* http_server3.cc in Sources */,
+				4986C9754FF42402D5840F81 /* http_server1.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
