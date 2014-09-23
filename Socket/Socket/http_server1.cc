@@ -89,7 +89,7 @@ int main(int argc, char * argv[])
     while (1)
     {
 	    /* handle connections */
-	    rc = handle_connection(sock);
+	    rc = handle_connection(socketID);
     }
 }
 
@@ -112,10 +112,13 @@ int handle_connection(int sock)
 
     int new_socket = accept(sock, NULL, NULL);
 
+    printf("Hello World. I'm in.\n");
 
+
+    //TODO change read to recieve
 
     /* first read loop -- get request and headers*/
-    if ((len = read(new_socket,  buf,  sizeof(buf)-1)) > 0)
+    if ((len = recv(new_socket, buf, sizeof(buf)-1, 0)) > 0)
     {
         printf("READING");
     }
