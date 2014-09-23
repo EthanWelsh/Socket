@@ -110,7 +110,11 @@ int handle_connection(int sock)
 	"<h2>404 FILE NOT FOUND</h2>\n"
 	"</body></html>\n";
 
-
+    if(int new_socket = accept(sock, NULL, NULL)<0)
+    {
+        printf("Error opening new socket with accept.\n");
+        return -1;
+    }
 
     /* first read loop -- get request and headers*/
     if ((len = read(sock,  buf,  sizeof(buf)-1)) <= 0)
