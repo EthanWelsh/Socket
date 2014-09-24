@@ -14,13 +14,14 @@
 #define FILENAMESIZE 100
 
 int handle_connection(int sock);
+FILE* getFile(char* request);
 
 int main(int argc, char * argv[])
 {
     int server_port = -1;
     int rc          =  0;
-    int sock        = -1;
     int socketID;
+
 
 
 
@@ -39,28 +40,12 @@ int main(int argc, char * argv[])
 	    exit(-1);
     }
 
-    /* initialize */
-    if (toupper(*(argv[1])) == 'K')
-    {
-
-    }
-    else if (toupper(*(argv[1])) == 'U')
-    {
-
-    }
-    else
-    {
-        fprintf(stderr, "First argument must be k or u\n");
-        exit(-1);
-    }
-
     /* initialize and make socket */
     if ((socketID = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     { //error processing;
         printf("Failed to establish socket.\n");
         return -1;
     }
-
 
     /* set server address*/
 
@@ -85,20 +70,38 @@ int main(int argc, char * argv[])
         return -1;
     }
 
+    printf("About to enter into the loop\n");
+
     /* connection handling loop: wait to accept connection */
+
+    int new_socket;
+
     while (1)
     {
+
+        new_socket = accept(socketID, NULL, NULL);
+
 	    /* handle connections */
-	    rc = handle_connection(socketID);
+        if(new_socket < 0)
+        {
+            fprintf(stderr, "Error while accepting the socket.\n");
+            return -1;
+        }
+
+        rc = handle_connection(new_socket);
+
+
     }
 }
 
 int handle_connection(int sock)
 {
     bool ok = true;
-	int new_socket;
     int len;
     char buf[BUFSIZE];
+
+
+
 
     const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
 	"Content-type: text/plain\r\n"			\
@@ -110,23 +113,41 @@ int handle_connection(int sock)
 	"<h2>404 FILE NOT FOUND</h2>\n"
 	"</body></html>\n";
 
-    if((new_socket = accept(sock, NULL, NULL))< 0)
-	{
-		fprintf(stderr, "Error while accepting the socket.\n");
-		return -1;
-	}
 
-    printf("Hello World. I'm in.\n");
 
     /* first read loop -- get request and headers*/
     char data_received[BUFSIZE*1024];
-	int next_posit=0;	// track where to write data to
-	len = recv(new_socket, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
-	do
+	int next_posit = 0;	// track where to write data to
+
+    //printf("STUCK\n");
+
+    len = recv(sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
+    buf[len] = '\0';
+
+
+    FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
+    fseek(fileTheUserRequested, 0, SEEK_END);
+    long sizeOfFile = ftell(fileTheUserRequested);
+    rewind(fileTheUserRequested);
+    char fileContent[sizeOfFile];
+    fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
+
+    if (write(sock, fileContent, sizeOfFile) > 0)
+    {
+
+        //i = 0;
+
+
+        printf("writting.\n");
+    }
+
+
+
+    do
 	{
-		if (len> 0)	// If there is data being read in
+		if (len > 0)	// If there is data being read in
 		{
-			printf("READING");
+
 			memcpy((data_received+next_posit), buf, len);	// Copy into one location
 			next_posit+= len;
 			if(len< BUFSIZE)	// At the last block
@@ -134,56 +155,90 @@ int handle_connection(int sock)
 				break;	// Break out of the loop
 			}
 		}
-		len= recv(new_socket, buf, sizeof(buf)-1, 0);
-	} while(len > 0);
 
-    buf[len] = '\0';
-/* Do we need to do this
-    int i = 0;
-    for (i = 0; i < len; i++)
-    {
-        if (islower(buf[i]))
-            buf[i] = toupper(buf[i]);
-    }
+			len = recv(sock, buf, sizeof(buf)-1, 0);
 
-    if (write(new_socket, buf, len) > 0)
-    {
-        printf(" writing.\n");
-    }
-*/
+    } while(len > 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	/* parse request to get file name */
     /* Assumption: this is a GET request and filename contains no spaces*/
-	char filename[FILENAMESIZE];
-	if(getFilePathFromRequest(data_received, filename, FILENAMESIZE) < 0)
-	{
-		fprintf(stderr, "Issue with the client's request.\n");
-		return -1;
-	}
 
     /* try opening the file */
 
     /* send response */
     if (ok)
     {
-		/* send headers */
+        /* send headers */
 
-		/* send file */
+        /* send file */
     }
     else
     {
-		// send error response
-		write(new_socket, notok_response, (strlen(notok_response)+1));
+        // send error response
+        write(sock, notok_response, (strlen(notok_response)+1));
     }
 
     /* close socket and free space */
-    close(sock);
+
 
     if (ok)
-	{
-		return 0;
+    {
+        close(sock);
+        return 0;
     }
-	else
-	{
-		return -1;
-	}
+    else
+    {
+        return -1;
+    }
+}
+
+
+
+FILE* getFile(char* request)
+{
+    int lengthOfRequest = strlen(request);
+
+
+    int indexOfFirstSpace = 0;
+    int indexOfSecondSpace = 0;
+
+    for(int i = 0; i < lengthOfRequest; i++)
+    {
+        if(request[i] == ' ' && indexOfFirstSpace == 0)
+        {
+            indexOfFirstSpace = i;
+        }
+        else if (request[i] == ' ' && indexOfSecondSpace == 0)
+        {
+            indexOfSecondSpace = i;
+        }
+    }
+
+    char fileName[BUFSIZE];
+
+    int j = 0;
+
+    for(int i = indexOfFirstSpace + 1; i<= indexOfSecondSpace; i++)
+    {
+        fileName[j] = request[i];
+        j++;
+    }
+
+    fileName[j - 1] = '\0';
+    return fopen(fileName, "r");
+
 }
