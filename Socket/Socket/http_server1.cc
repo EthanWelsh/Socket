@@ -151,8 +151,7 @@ int handle_connection(int sock)
         printf(" writing.\n");
     }
 */
-
-    /* parse request to get file name */
+	/* parse request to get file name */
     /* Assumption: this is a GET request and filename contains no spaces*/
 	char filename[FILENAMESIZE];
 	if(getFilePathFromRequest(data_received, filename, FILENAMESIZE) < 0)
@@ -166,18 +165,25 @@ int handle_connection(int sock)
     /* send response */
     if (ok)
     {
-	/* send headers */
+		/* send headers */
 
-	/* send file */
+		/* send file */
     }
     else
     {
-	// send error response
+		// send error response
+		write(new_socket, notok_response, (strlen(notok_response)+1));
     }
 
     /* close socket and free space */
     close(sock);
 
-    if (ok) return 0;
-    else return -1;
+    if (ok)
+	{
+		return 0;
+    }
+	else
+	{
+		return -1;
+	}
 }
