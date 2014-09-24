@@ -13,6 +13,7 @@
 #define BUFSIZE 1024
 #define FILENAMESIZE 100
 
+
 int handle_connection(int sock);
 FILE* getFile(char* request);
 
@@ -70,7 +71,7 @@ int main(int argc, char * argv[])
         return -1;
     }
 
-    printf("About to enter into the loop\n");
+
 
     /* connection handling loop: wait to accept connection */
 
@@ -119,7 +120,7 @@ int handle_connection(int sock)
     char data_received[BUFSIZE*1024];
 	int next_posit = 0;	// track where to write data to
 
-    //printf("STUCK\n");
+
 
     len = recv(sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
     buf[len] = '\0';
@@ -134,11 +135,7 @@ int handle_connection(int sock)
 
     if (write(sock, fileContent, sizeOfFile) > 0)
     {
-
-        //i = 0;
-
-
-        printf("writting.\n");
+        // DO STUFF TODO
     }
 
 
@@ -159,20 +156,6 @@ int handle_connection(int sock)
 			len = recv(sock, buf, sizeof(buf)-1, 0);
 
     } while(len > 0);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 	/* parse request to get file name */
     /* Assumption: this is a GET request and filename contains no spaces*/
