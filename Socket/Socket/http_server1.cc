@@ -119,20 +119,33 @@ int handle_connection(int sock)
     printf("Hello World. I'm in.\n");
 
     /* first read loop -- get request and headers*/
-    if ((len = recv(new_socket, buf, sizeof(buf)-1, 0)) > 0)
-    {
-        printf("READING");
-    }
-                                              
-    buf[len] = '\0';
+    char data_received[BUFSIZE*1024];
+	int next_posit=0;	// track where to write data to
+	len = recv(new_socket, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
+	do
+	{
+		if (len> 0)	// If there is data being read in
+		{
+			printf("READING");
+			memcpy((data_received+next_posit), buf, len);	// Copy into one location
+			next_posit+= len;
+			if(len< BUFSIZE)	// At the last block
+			{
+				break;	// Break out of the loop
+			}
+		}
+		len= recv(new_socket, buf, sizeof(buf)-1, 0);
+	} while(len > 0);
 
+    buf[len] = '\0';
+/* Do we need to do this
     int i = 0;
     for (i = 0; i < len; i++)
     {
         if (islower(buf[i]))
             buf[i] = toupper(buf[i]);
     }
-
+*/
     if (write(new_socket, buf, len) > 0)
     {
         printf(" writing.\n");
@@ -141,6 +154,12 @@ int handle_connection(int sock)
 
     /* parse request to get file name */
     /* Assumption: this is a GET request and filename contains no spaces*/
+	char filename[FILENAMESIZE];
+	if(getFilePathFromRequest(totalrecv, filename, FILENAMESIZE) < 0)
+	{
+		fprintf(stderr, "Issue with the client's request.\n");
+		return -1;
+	}
 
     /* try opening the file */
 
