@@ -145,17 +145,17 @@ int handle_connection(int sock)
         if (islower(buf[i]))
             buf[i] = toupper(buf[i]);
     }
-*/
+
     if (write(new_socket, buf, len) > 0)
     {
         printf(" writing.\n");
     }
-
+*/
 
     /* parse request to get file name */
     /* Assumption: this is a GET request and filename contains no spaces*/
 	char filename[FILENAMESIZE];
-	if(getFilePathFromRequest(totalrecv, filename, FILENAMESIZE) < 0)
+	if(getFilePathFromRequest(data_received, filename, FILENAMESIZE) < 0)
 	{
 		fprintf(stderr, "Issue with the client's request.\n");
 		return -1;
