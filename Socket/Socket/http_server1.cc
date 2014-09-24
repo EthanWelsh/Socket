@@ -96,7 +96,7 @@ int main(int argc, char * argv[])
 int handle_connection(int sock)
 {
     bool ok = true;
-
+	int new_socket;
     int len;
     char buf[BUFSIZE];
 
@@ -110,12 +110,13 @@ int handle_connection(int sock)
 	"<h2>404 FILE NOT FOUND</h2>\n"
 	"</body></html>\n";
 
-    int new_socket = accept(sock, NULL, NULL);
+    if((new_socket = accept(sock, NULL, NULL))< 0)
+	{
+		fprintf(stderr, "Error while accepting the socket.\n");
+		return -1;
+	}
 
     printf("Hello World. I'm in.\n");
-
-
-    //TODO change read to recieve
 
     /* first read loop -- get request and headers*/
     if ((len = recv(new_socket, buf, sizeof(buf)-1, 0)) > 0)
@@ -134,7 +135,7 @@ int handle_connection(int sock)
 
     if (write(new_socket, buf, len) > 0)
     {
-        printf(" writting.\n");
+        printf(" writing.\n");
     }
 
 
