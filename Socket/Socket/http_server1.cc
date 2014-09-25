@@ -127,6 +127,7 @@ int handle_connection(int sock)
 
 
     FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
+
     fseek(fileTheUserRequested, 0, SEEK_END);
     long sizeOfFile = ftell(fileTheUserRequested);
     rewind(fileTheUserRequested);
