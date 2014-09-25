@@ -107,7 +107,7 @@ int main(int argc, char * argv[])
 		return -1;
     }
 
-    printf("Connection has Been Established\n");
+
 
 	/* send request message */
 	sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
@@ -130,7 +130,7 @@ int main(int argc, char * argv[])
 	}
 	
 	// First loop
-	while((res= read(socketID, buf, BUFSIZE-1))> 0)	// Read first portion
+	while((res = read(socketID, buf, BUFSIZE-1))> 0)	// Read first portion
 	{
 		buf[res]= '\0'; // Make empty string
 		response+= std::string(buf);
@@ -138,8 +138,8 @@ int main(int argc, char * argv[])
 		
 		if(position!= std::string::npos)	// Found the header
 		{
-			header= response.substr(0, position); // Get the header
-			response= response.substr(position+4); // Get the response
+			header = response.substr(0, position); // Get the header
+			response = response.substr(position+4); // Get the response
 			break;	// have what I need now so move on
 		}
 		res= read(socketID, buf, BUFSIZE-1); // Read in the next portion
@@ -151,31 +151,28 @@ int main(int argc, char * argv[])
 	
 	status = header.substr(header.find(" ") + 1); // Get status code
 	status = status.substr(0, status.find(" "));
-	
+
+
+
+
+
 	// Normal reply has return code 200
-	if(status== "200")
+	if(strcmp(status.c_str(), "200") == 0)
 	{
+
+
 		ok= true; // No errors
-		cout << response; // Output the first response data
+        std::cout << response; // Output the first response data
 	}
 	else
 	{
 		ok = false;
-		cerr << header + "\r\n\r\n" + response; // Error encountered
+        std::cerr << header + "\r\n\r\n" + response; // Error encountered
 	}
 	// second read loop -- print out the rest of the response: real web content
-	while( (res = read(socketID, buf, BUFSIZE-1) ) >0)
-	{
-		buf[res] = '\0'; // TODO I edited this part. You had 'result' which isn't a thing. 
-		if(ok)
-		{
-			printf("%s", buf);
-		}
-		else
-		{
-			fprintf(stderr, buf);
-		}
-	}
+    // TODO
+
+
     // close socket and deinitialize 
 	close(socketID);
 	free(req);	// Free the malloced space

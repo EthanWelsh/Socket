@@ -128,17 +128,20 @@ int handle_connection(int sock)
 
     FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
 
-    fseek(fileTheUserRequested, 0, SEEK_END);
-    long sizeOfFile = ftell(fileTheUserRequested);
-    rewind(fileTheUserRequested);
-    char fileContent[sizeOfFile];
-    fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
-
-    if (write(sock, fileContent, sizeOfFile) > 0)
+    if(fileTheUserRequested != NULL)
     {
-        // DO STUFF TODO
-    }
+        fseek(fileTheUserRequested, 0, SEEK_END);
+        long sizeOfFile = ftell(fileTheUserRequested);
+        rewind(fileTheUserRequested);
+        char fileContent[sizeOfFile];
+        fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
 
+        write(sock, fileContent, sizeOfFile);
+    }
+    else
+    {
+        write(sock, notok_response, 140);
+    }
 
 
     do
@@ -158,10 +161,8 @@ int handle_connection(int sock)
 
     } while(len > 0);
 
-	/* parse request to get file name */
-    /* Assumption: this is a GET request and filename contains no spaces*/
 
-    /* try opening the file */
+
 
     /* send response */
     if (ok)
@@ -197,22 +198,56 @@ FILE* getFile(char* request)
     int lengthOfRequest = strlen(request);
 
 
-    int indexOfFirstSpace = 0;
-    int indexOfSecondSpace = 0;
+
+
+    char fileName[BUFSIZE];
+
+    // If there is only one slash in the file. do stuff another way
+
+
+    int numberOfSlash = 0;
 
     for(int i = 0; i < lengthOfRequest; i++)
     {
-        if(request[i] == ' ' && indexOfFirstSpace == 0)
+        if(request[i] == '/')
         {
-            indexOfFirstSpace = i;
-        }
-        else if (request[i] == ' ' && indexOfSecondSpace == 0)
-        {
-            indexOfSecondSpace = i;
+            numberOfSlash++;
         }
     }
 
-    char fileName[BUFSIZE];
+
+    int indexOfFirstSpace = 0;
+    int indexOfSecondSpace = 0;
+
+    if(numberOfSlash == 2)
+    {
+
+        for(int i = 0; i < lengthOfRequest; i++)
+        {
+            if(request[i] == '/' && indexOfFirstSpace == 0)
+            {
+                indexOfFirstSpace = i;
+            }
+            else if (request[i] == ' ' && indexOfSecondSpace == 0)
+            {
+                indexOfSecondSpace = i;
+            }
+        }
+    }
+    else
+    {
+        for(int i = 0; i < lengthOfRequest; i++)
+        {
+            if(request[i] == ' ' && indexOfFirstSpace == 0)
+            {
+                indexOfFirstSpace = i;
+            }
+            else if (request[i] == ' ' && indexOfSecondSpace == 0)
+            {
+                indexOfSecondSpace = i;
+            }
+        }
+    }
 
     int j = 0;
 
@@ -224,5 +259,6 @@ FILE* getFile(char* request)
 
     fileName[j - 1] = '\0';
     return fopen(fileName, "r");
+
 
 }
