@@ -126,6 +126,7 @@ int handle_connection(int sock)
     buf[len] = '\0';
 
 
+
     FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
 
     if(fileTheUserRequested != NULL)
