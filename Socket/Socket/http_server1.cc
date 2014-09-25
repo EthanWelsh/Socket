@@ -13,7 +13,6 @@
 #define BUFSIZE 1024
 #define FILENAMESIZE 100
 
-
 int handle_connection(int sock);
 FILE* getFile(char* request);
 
@@ -22,9 +21,6 @@ int main(int argc, char * argv[])
     int server_port = -1;
     int rc          =  0;
     int socketID;
-
-
-
 
     /* parse command line args */
     if (argc != 3)
@@ -71,15 +67,10 @@ int main(int argc, char * argv[])
         return -1;
     }
 
-
-
     /* connection handling loop: wait to accept connection */
-
     int new_socket;
-
     while (1)
     {
-
         new_socket = accept(socketID, NULL, NULL);
 
 	    /* handle connections */
@@ -88,21 +79,15 @@ int main(int argc, char * argv[])
             fprintf(stderr, "Error while accepting the socket.\n");
             return -1;
         }
-
         rc = handle_connection(new_socket);
-
-
     }
 }
 
 int handle_connection(int sock)
 {
-    bool ok = true;
+    bool ok = false;
     int len;
     char buf[BUFSIZE];
-
-
-
 
     const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
 	"Content-type: text/plain\r\n"			\
@@ -114,37 +99,17 @@ int handle_connection(int sock)
 	"<h2>404 FILE NOT FOUND</h2>\n"
 	"</body></html>\n";
 
-
-
     /* first read loop -- get request and headers*/
     char data_received[BUFSIZE*1024];
 	int next_posit = 0;	// track where to write data to
 
-
-
     len = recv(sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
     buf[len] = '\0';
 
-
-    FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
-    fseek(fileTheUserRequested, 0, SEEK_END);
-    long sizeOfFile = ftell(fileTheUserRequested);
-    rewind(fileTheUserRequested);
-    char fileContent[sizeOfFile];
-    fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
-
-    if (write(sock, fileContent, sizeOfFile) > 0)
-    {
-        // DO STUFF TODO
-    }
-
-
-
-    do
+	do
 	{
 		if (len > 0)	// If there is data being read in
 		{
-
 			memcpy((data_received+next_posit), buf, len);	// Copy into one location
 			next_posit+= len;
 			if(len< BUFSIZE)	// At the last block
@@ -156,12 +121,17 @@ int handle_connection(int sock)
 			len = recv(sock, buf, sizeof(buf)-1, 0);
 
     } while(len > 0);
-
+	
 	/* parse request to get file name */
     /* Assumption: this is a GET request and filename contains no spaces*/
-
-    /* try opening the file */
-
+	FILE* fileTheUserRequested =getFile(data_received); // Gets the file pointer to the file user requested. NULL if not found.
+   
+	/* try opening the file */
+    fseek(fileTheUserRequested, 0, SEEK_END);
+    long sizeOfFile = ftell(fileTheUserRequested);
+    rewind(fileTheUserRequested);
+    char fileContent[sizeOfFile];
+    fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
     /* send response */
     if (ok)
     {
@@ -188,8 +158,6 @@ int handle_connection(int sock)
         return -1;
     }
 }
-
-
 
 FILE* getFile(char* request)
 {
