@@ -88,7 +88,7 @@ int main(int argc, char * argv[])
             return -1;
         }
 		FD_SET(new_socket, &master_bag);	// Add the new connection
-		select_result= (select(FD_SETSIZE, &master_bag, NULL, NULL, &timer);
+		select_result= select(FD_SETSIZE, &master_bag, NULL, NULL, &timer);
 		if(select_result>= 0)
 		{
 			printf("I have something from socket %d\n", select_result);
