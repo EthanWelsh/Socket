@@ -1,26 +1,17 @@
-/* UNCOMMENT FOR MINET 
- * #include "minet_socket.h"
- */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <netdb.h>
-
+#include <unistd.h>
+#include <netinet/in.h>
 
 #define BUFSIZE 1024
 #define FILENAMESIZE 100
-#define MAXNUMOFCONNECTIONS 15
-
-int numberOfOpenConnections = 0;
-int sockets[MAXNUMOFCONNECTIONS];
-
-int handle_connection(int sock);
-
 
 int handle_connection(int sock);
 FILE* getFile(char* request);
@@ -30,9 +21,6 @@ int main(int argc, char * argv[])
     int server_port = -1;
     int rc          =  0;
     int socketID;
-
-
-
 
     /* parse command line args */
     if (argc != 3)
@@ -79,22 +67,11 @@ int main(int argc, char * argv[])
         return -1;
     }
 
-
-
     /* connection handling loop: wait to accept connection */
-
     int new_socket;
-
-
-
-
-
     while (1)
     {
-
         new_socket = accept(socketID, NULL, NULL);
-        sockets[numberOfOpenConnections] = new_socket;
-
 
         /* handle connections */
         if(new_socket < 0)
@@ -102,19 +79,15 @@ int main(int argc, char * argv[])
             fprintf(stderr, "Error while accepting the socket.\n");
             return -1;
         }
-
         rc = handle_connection(new_socket);
-
-
     }
 }
 
 int handle_connection(int sock)
 {
-    bool ok = true;
+    bool ok = false;
     int len;
     char buf[BUFSIZE];
-
 
     const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
 	"Content-type: text/plain\r\n"			\
@@ -126,17 +99,12 @@ int handle_connection(int sock)
 	"<h2>404 FILE NOT FOUND</h2>\n"
             "</body></html>\n";
 
-
-
     /* first read loop -- get request and headers*/
     char data_received[BUFSIZE*1024];
     int next_posit = 0;	// track where to write data to
 
-
-
     len = recv(sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
     buf[len] = '\0';
-
 
 
     FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
@@ -161,7 +129,6 @@ int handle_connection(int sock)
     {
         if (len > 0)	// If there is data being read in
         {
-
             memcpy((data_received+next_posit), buf, len);	// Copy into one location
             next_posit+= len;
             if(len< BUFSIZE)	// At the last block
@@ -175,27 +142,11 @@ int handle_connection(int sock)
     } while(len > 0);
 
 
-
-
-    /* send response */
-    if (ok)
-    {
-        /* send headers */
-
-        /* send file */
-    }
-    else
-    {
-        // send error response
-        write(sock, notok_response, (strlen(notok_response)+1));
-    }
-
     /* close socket and free space */
-
+    close(sock);
 
     if (ok)
     {
-        close(sock);
         return 0;
     }
     else
@@ -204,11 +155,13 @@ int handle_connection(int sock)
     }
 }
 
-
-
 FILE* getFile(char* request)
 {
     int lengthOfRequest = strlen(request);
+
+
+
+
     char fileName[BUFSIZE];
 
     // If there is only one slash in the file. do stuff another way
@@ -267,7 +220,8 @@ FILE* getFile(char* request)
     }
 
     fileName[j - 1] = '\0';
-    return fopen(fileName, "r");
+    /* try opening the file */
+    return fopen(fileName, "rb");
 
 
 }

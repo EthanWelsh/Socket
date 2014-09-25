@@ -1,6 +1,11 @@
 /*
+<<<<<<< HEAD
 	Joshua Miner	- jmm299
 	Ethan Welsh		- 
+=======
+	Joshua Miner	- jmm299@pitt.edu
+	Ethan Welsh		- ejw45@pitt.edu
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
 	CS1652 Fall 2014
 	Project 1- http_client.cc
 */
@@ -100,6 +105,12 @@ int main(int argc, char * argv[])
     memcpy(&saddr.sin_addr.s_addr, hp->h_addr, hp->h_length);  /* TODO CHANGED LENGTH TO H_LENGTH*/
     saddr.sin_port = htons(server_port);
 
+<<<<<<< HEAD
+=======
+    printf("Connecting to Server...\n");
+
+
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
     if (connect(socketID, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
     { //error processing;
         printf("We couldn't establish a connection\n");
@@ -107,17 +118,33 @@ int main(int argc, char * argv[])
 		return -1;
     }
 
+<<<<<<< HEAD
 
 
 	/* send request message */
 	sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
 	if(write(socketID, req, strlen(req))<= 0)
 	{
+=======
+    printf("Connection has Been Established\n");
+
+	/* send request message */
+    printf("Processing the request and sending it");
+	sprintf(req, "GET %s HTTP/1.0\r\n\r\n", server_path);
+	if(write(socketID, req, strlen(req))<= 0)
+	{
+		printf("Writing the following request to host:\n %s", req);
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
 		fprintf(stderr, "There was an issue sending the message to the server.\n");
 		free(req);
 		return -1;
 	}
 	
+<<<<<<< HEAD
+=======
+	printf("Written\n");
+	
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
 	//wait till socket can be read.	====	use select(), and ignore timeout for now. 
 	FD_ZERO(&fds); // Clear out fd
 	FD_SET(socketID, &fds); // Adds socket file descriptor
@@ -130,16 +157,27 @@ int main(int argc, char * argv[])
 	}
 	
 	// First loop
+<<<<<<< HEAD
 	while((res = read(socketID, buf, BUFSIZE-1))> 0)	// Read first portion
 	{
+=======
+	while((res= read(socketID, buf, BUFSIZE-1))> 0)	// Read first portion
+	{
+		printf("I READ STUFF\n");
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
 		buf[res]= '\0'; // Make empty string
 		response+= std::string(buf);
 		position= response.find("\r\n\r\n", 0); // Find the position of this string
 		
 		if(position!= std::string::npos)	// Found the header
 		{
+<<<<<<< HEAD
 			header = response.substr(0, position); // Get the header
 			response = response.substr(position+4); // Get the response
+=======
+			header= response.substr(0, position); // Get the header
+			response= response.substr(position+4); // Get the response
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
 			break;	// have what I need now so move on
 		}
 		res= read(socketID, buf, BUFSIZE-1); // Read in the next portion
@@ -151,6 +189,7 @@ int main(int argc, char * argv[])
 	
 	status = header.substr(header.find(" ") + 1); // Get status code
 	status = status.substr(0, status.find(" "));
+<<<<<<< HEAD
 
 
 
@@ -163,16 +202,42 @@ int main(int argc, char * argv[])
 
 		ok= true; // No errors
         std::cout << response; // Output the first response data
+=======
+	
+	// Normal reply has return code 200
+	if(status== "200")
+	{
+		ok= true; // No errors
+		cout << response; // Output the first response data
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
 	}
 	else
 	{
 		ok = false;
+<<<<<<< HEAD
         std::cerr << header + "\r\n\r\n" + response; // Error encountered
 	}
 	// second read loop -- print out the rest of the response: real web content
     // TODO
 
 
+=======
+		cerr << header + "\r\n\r\n" + response; // Error encountered
+	}
+	// second read loop -- print out the rest of the response: real web content
+	while( (res = read(socketID, buf, BUFSIZE-1) ) >0)
+	{
+		buf[res] = '\0'; // TODO I edited this part. You had 'result' which isn't a thing. 
+		if(ok)
+		{
+			printf("%s", buf);
+		}
+		else
+		{
+			fprintf(stderr, buf);
+		}
+	}
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
     // close socket and deinitialize 
 	close(socketID);
 	free(req);	// Free the malloced space
@@ -186,4 +251,7 @@ int main(int argc, char * argv[])
         return -1;
     }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> c36f14f77e0faf8bed9758b906d66decc59641d1
