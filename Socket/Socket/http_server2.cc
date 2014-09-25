@@ -1,6 +1,3 @@
-/* UNCOMMENT FOR MINET 
- * #include "minet_socket.h"
- */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -11,51 +8,73 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-
 #define BUFSIZE 1024
 #define FILENAMESIZE 100
 
 int handle_connection(int sock);
 
-int main(int argc, char * argv[]) {
+int main(int argc, char * argv[]) 
+{
     int server_port = -1;
     int rc          =  0;
-    int sock        = -1;
+    int socketID    = -1;
 
     /* parse command line args */
-    if (argc != 3) {
-	fprintf(stderr, "usage: http_server1 k|u port\n");
-	exit(-1);
+    if (argc != 3)
+	{
+		fprintf(stderr, "usage: http_server1 k|u port\n");
+		exit(-1);
     }
 
     server_port = atoi(argv[2]);
 
-    if (server_port < 1500) {
-	fprintf(stderr, "INVALID PORT NUMBER: %d; can't be < 1500\n", server_port);
-	exit(-1);
+    if (server_port < 1500) 
+	{
+		fprintf(stderr, "INVALID PORT NUMBER: %d; can't be < 1500\n", server_port);
+		exit(-1);
     }
     
     /* initialize */
-    if (toupper(*(argv[1])) == 'K') { 
-	/* UNCOMMENT FOR MINET 
-	 * minet_init(MINET_KERNEL);
-         */
-    } else if (toupper(*(argv[1])) == 'U') { 
-	/* UNCOMMENT FOR MINET 
-	 * minet_init(MINET_USER);
-	 */
-    } else {
-	fprintf(stderr, "First argument must be k or u\n");
-	exit(-1);
+    if (toupper(*(argv[1])) == 'K')
+	{ 
+    } 
+	else if (toupper(*(argv[1])) == 'U') 
+	{ 
+	}
+	else
+	{
+		fprintf(stderr, "First argument must be k or u\n");
+		exit(-1);
     }
 
     /* initialize and make socket */
-
+	if ((socketID = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+    { //error processing;
+        printf("Failed to establish socket.\n");
+        return -1;
+    }
+	
     /* set server address*/
+	struct sockaddr_in saddr;
 
+    memset(&saddr, 0, sizeof(saddr));
+    saddr.sin_family = AF_INET;
+    saddr.sin_addr.s_addr = INADDR_ANY;
+    saddr.sin_port = htons(server_port);
+	
     /* bind listening socket */
-
+	if (bind(socketID, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
+    {
+        printf("I can't bind correctly.\n");
+        return -1;
+    }
+	
     /* start listening */
+    if (listen(socketID, 32) < 0)
+    {
+        printf("I'm a bad listener.\n");
+        return -1;
+    }
 
     /* connection handling loop: wait to accept connection */
 
