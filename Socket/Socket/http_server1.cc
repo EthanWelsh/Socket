@@ -125,19 +125,26 @@ int handle_connection(int sock)
 	/* parse request to get file name */
     /* Assumption: this is a GET request and filename contains no spaces*/
 	FILE* fileTheUserRequested =getFile(data_received); // Gets the file pointer to the file user requested. NULL if not found.
-   
-	/* try opening the file */
-    fseek(fileTheUserRequested, 0, SEEK_END);
-    long sizeOfFile = ftell(fileTheUserRequested);
-    rewind(fileTheUserRequested);
-    char fileContent[sizeOfFile];
-    fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
+	if(fileTheUserRequested!= NULL)
+	{
+		ok= true;
+	}
+	
     /* send response */
     if (ok)
     {
+		fseek(fileTheUserRequested, 0, SEEK_END);
+		long sizeOfFile = ftell(fileTheUserRequested);
+		rewind(fileTheUserRequested);
+		char fileContent[sizeOfFile];
+		fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
         /* send headers */
-
+		unsigned int size_of_buffer = strlen(ok_response_f)+4096;
+		char * sending_buffer= new char[size_of_buffer];
+		memset(sending_buffer, 0, size_of_buffer);	// Overwrite the memory block to clear
+		sprintf(sending_buffer, ok_response_f, sizeOfFile);
         /* send file */
+		delete [] sending_buffer;
     }
     else
     {
@@ -146,11 +153,10 @@ int handle_connection(int sock)
     }
 
     /* close socket and free space */
-
+	close(sock);
 
     if (ok)
     {
-        close(sock);
         return 0;
     }
     else
@@ -190,6 +196,7 @@ FILE* getFile(char* request)
     }
 
     fileName[j - 1] = '\0';
-    return fopen(fileName, "r");
+	/* try opening the file */
+    return fopen(fileName, "rb");
 
 }
