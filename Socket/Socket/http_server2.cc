@@ -74,16 +74,25 @@ int main(int argc, char * argv[])
 
     /* connection handling loop: wait to accept connection */
     int new_socket;
-    while (1)
+	int select_result;
+    fd_set master_bag;	// Hold all the connected sockets
+	FD_ZERO(&master_bag); // Clear out memory
+	struct timeval timer={0};
+	timer.tv_sec= 0;
+	while (1)
     {
-        new_socket = accept(socketID, NULL, NULL);
-
-        /* handle connections */
-        if(new_socket < 0)
-        {
+		/* handle connections */
+        if( (new_socket= accept(socketID, NULL, NULL)) < 0)
+        {	// Error processing
             fprintf(stderr, "Error while accepting the socket.\n");
             return -1;
         }
+		FD_SET(new_socket, &master_bag);	// Add the new connection
+		select_result= (select(FD_SETSIZE, &master_bag, NULL, NULL, &timer;
+		if(select_result>= 0)
+		{
+			printf("I have something from socket %d\n", select_result);
+		}
         rc = handle_connection(new_socket);
     }
 }
