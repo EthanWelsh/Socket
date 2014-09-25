@@ -12,9 +12,14 @@
 
 #define BUFSIZE 1024
 #define FILENAMESIZE 100
+#define NUMBEROFMAXIMUMCONNECTIONS 15
 
 int handle_connection(int sock);
 FILE* getFile(char* request);
+
+
+int number_of_open_connection = 0;
+int sockets[NUMBEROFMAXIMUMCONNECTIONS];
 
 int main(int argc, char * argv[])
 {
