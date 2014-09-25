@@ -144,6 +144,8 @@ int handle_connection(int sock)
 		memset(sending_buffer, 0, size_of_buffer);	// Overwrite the memory block to clear
 		sprintf(sending_buffer, ok_response_f, sizeOfFile);
         /* send file */
+		write(sock, sending_buffer, size_of_buffer);
+		
 		delete [] sending_buffer;
     }
     else
