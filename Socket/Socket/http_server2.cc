@@ -26,7 +26,7 @@ int max_socket;
 
 int main(int argc, char *argv[])
 {
-    int server_port = -1;
+    int server_port;
     int master_socket;
 
     /* parse command line args */
