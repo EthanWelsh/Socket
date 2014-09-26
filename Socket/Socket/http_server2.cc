@@ -186,6 +186,7 @@ int main(int argc, char *argv[])
                     fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
 
                     write(curr_sock, fileContent, sizeOfFile);
+
                 }
                 else
                 {
@@ -196,77 +197,7 @@ int main(int argc, char *argv[])
     }
 }
 
-int handle_connection(int sock)
-{
-    bool ok = false;
-    int len;
-    char buf[BUFSIZE];
 
-    const char *ok_response_f = "HTTP/1.0 200 OK\r\n"    \
-    "Content-type: text/plain\r\n"            \
-    "Content-length: %d \r\n\r\n";
-
-    const char *notok_response = "HTTP/1.0 404 FILE NOT FOUND\r\n"    \
-    "Content-type: text/html\r\n\r\n"            \
-    "<html><body bgColor=black text=white>\n"        \
-    "<h2>404 FILE NOT FOUND</h2>\n"
-            "</body></html>\n";
-
-    /* first read loop -- get request and headers*/
-    char data_received[BUFSIZE* 1024];
-    int next_posit = 0;    // track where to write data to
-
-    len = recv(sock, buf, sizeof(buf) - 1, 0);    // Do a receive of data for request
-    buf[len] = '\0';
-
-
-    FILE *fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
-
-    if (fileTheUserRequested != NULL)
-    {
-        fseek(fileTheUserRequested, 0, SEEK_END);
-        long sizeOfFile = ftell(fileTheUserRequested);
-        rewind(fileTheUserRequested);
-        char fileContent[sizeOfFile];
-        fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
-
-        write(sock, fileContent, sizeOfFile);
-    }
-    else
-    {
-        write(sock, notok_response, 140);
-    }
-
-
-    do
-    {
-        if (len > 0)    // If there is data being read in
-        {
-            memcpy((data_received + next_posit), buf, len);    // Copy into one location
-            next_posit += len;
-            if (len < BUFSIZE)    // At the last block
-            {
-                break;    // Break out of the loop
-            }
-        }
-
-        len = recv(sock, buf, sizeof(buf) - 1, 0);
-
-    } while (len > 0);
-
-
-    /* close socket and free space */
-    close(sock);
-
-    if (ok)
-    {
-        return 0;
-    }
-    else
-    {
-        return -1;
-    }
-}
 
 FILE *getFile(char *request)
 {
