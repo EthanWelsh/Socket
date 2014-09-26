@@ -119,14 +119,22 @@ int handle_connection(int sock)
         fseek(fileTheUserRequested, 0, SEEK_END);
         long sizeOfFile = ftell(fileTheUserRequested);
         rewind(fileTheUserRequested);
+
         char fileContent[sizeOfFile];
         fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
 
+        char headerResponse[80];
+        sprintf(headerResponse, ok_response_f, sizeOfFile);
+
+
+        /* Then write it out to the client*/
+        write(sock, headerResponse, strlen(headerResponse));
+        write(sock, "\n", 1);
         write(sock, fileContent, sizeOfFile);
     }
     else
     {
-        write(sock, notok_response, 140);
+        write(sock, notok_response, strlen(notok_response));
     }
 
 
