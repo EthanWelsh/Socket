@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     /* initialize and make socket */
     if ((master_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-    { //error processing;
+    {
         printf("Failed to establish socket.\n");
         return -1;
     }
@@ -158,7 +158,6 @@ int handle_connection(int sock)
         /* Then write it out to the client*/
         write(sock, fileContent, sizeOfFile);
         return 0;
-
     }
     else
     {
@@ -166,7 +165,6 @@ int handle_connection(int sock)
         write(sock, notok_response, 140);
         return -1;
     }
-
 }
 
 
