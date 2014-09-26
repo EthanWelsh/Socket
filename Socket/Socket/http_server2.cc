@@ -99,6 +99,7 @@ int main(int argc, char * argv[])
 							fprintf(stderr, "Error while accepting the socket.\n");
 							return -1;
 						}
+						FD_SET(new_socket, &master_bag);
 					}
 					else
 					{
