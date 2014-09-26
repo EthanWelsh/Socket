@@ -15,8 +15,12 @@
 #define NUMBEROFMAXIMUMCONNECTIONS 20
 
 int handle_connection(int sock);
-
 FILE *getFile(char *request);
+
+char buf[BUFSIZE];
+int current_socket;
+int max_sd;
+fd_set master_bag;      // Hold all the connected sockets
 
 
 int number_of_open_connection = 0;
@@ -77,7 +81,7 @@ int main(int argc, char *argv[])
     int new_socket;
     int i;
     int select_result;
-    fd_set master_bag;      // Hold all the connected sockets
+
 
     FD_ZERO(&master_bag); // Clear out memory
     FD_SET(master_socket, &master_bag);    // Add the new connection
@@ -85,25 +89,6 @@ int main(int argc, char *argv[])
     struct timeval timer = {0};
     timer.tv_sec = 0;
 
-    const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
-	"Content-type: text/plain\r\n"			\
-	"Content-length: %d \r\n\r\n";
-
-    const char * notok_response = "HTTP/1.0 404 FILE NOT FOUND\r\n"	\
-	"Content-type: text/html\r\n\r\n"			\
-	"<html><body bgColor=black text=white>\n"		\
-	"<h2>404 FILE NOT FOUND</h2>\n"
-            "</body></html>\n";
-
-
-
-
-
-
-
-    char buf[BUFSIZE];
-    int current_socket;
-    int max_sd;
 
     while(1)
     {
@@ -167,36 +152,54 @@ int main(int argc, char *argv[])
         for (i = 0; i < NUMBEROFMAXIMUMCONNECTIONS; i++)
         {
             int curr_sock = sockets[i];
+            handle_connection(curr_sock);
 
-            if (FD_ISSET(curr_sock , &master_bag))
-            {
-
-                int len = recv(curr_sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
-                buf[len] = '\0';
-
-
-                FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
-
-                if(fileTheUserRequested != NULL)
-                {
-                    fseek(fileTheUserRequested, 0, SEEK_END);
-                    long sizeOfFile = ftell(fileTheUserRequested);
-                    rewind(fileTheUserRequested);
-                    char fileContent[sizeOfFile];
-                    fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
-
-                    write(curr_sock, fileContent, sizeOfFile);
-
-                }
-                else
-                {
-                    write(curr_sock, notok_response, 140);
-                }
-            }
         }
     }
 }
 
+
+int handle_connection(int sock)
+{
+    const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
+	"Content-type: text/plain\r\n"			\
+	"Content-length: %d \r\n\r\n";
+
+    const char * notok_response = "HTTP/1.0 404 FILE NOT FOUND\r\n"	\
+	"Content-type: text/html\r\n\r\n"			\
+	"<html><body bgColor=black text=white>\n"		\
+	"<h2>404 FILE NOT FOUND</h2>\n"
+            "</body></html>\n";
+
+    if (FD_ISSET(sock, &master_bag))
+    {
+
+        int len = recv(sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
+        buf[len] = '\0';
+
+
+        FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
+
+        if(fileTheUserRequested != NULL)
+        {
+            fseek(fileTheUserRequested, 0, SEEK_END);
+            long sizeOfFile = ftell(fileTheUserRequested);
+            rewind(fileTheUserRequested);
+            char fileContent[sizeOfFile];
+            fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
+
+            write(sock, fileContent, sizeOfFile);
+            return 0;
+
+        }
+        else
+        {
+            write(sock, notok_response, 140);
+            return -1;
+        }
+    }
+    return -1;
+}
 
 
 FILE *getFile(char *request)
