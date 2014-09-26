@@ -1,3 +1,9 @@
+/*---------------------------------------------*/
+/* Ethan Welsh (EJW45) & Josh Miner (JMM299)   */
+/* September 26th, 2014                        */
+/* Networking Server 2                         */
+/*---------------------------------------------*/
+
 /* INCLUDES */
 #include <stdio.h>
 #include <string.h>

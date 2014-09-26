@@ -105,8 +105,6 @@ int main(int argc, char * argv[])
     memcpy(&saddr.sin_addr.s_addr, hp->h_addr, hp->h_length);  /* TODO CHANGED LENGTH TO H_LENGTH*/
     saddr.sin_port = htons(server_port);
 
-<<<<<<< HEAD
-=======
     printf("Connecting to Server...\n");
 
 
