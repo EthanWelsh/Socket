@@ -12,7 +12,7 @@
 
 #define BUFSIZE 1024
 #define FILENAMESIZE 100
-#define NUMBEROFMAXIMUMCONNECTIONS 15
+#define NUMBEROFMAXIMUMCONNECTIONS 20
 
 int handle_connection(int sock);
 
@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 {
     int server_port = -1;
     int rc = 0;
-    int socketID;
+    int master_socket;
 
     /* parse command line args */
     if (argc != 3)
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     }
 
     /* initialize and make socket */
-    if ((socketID = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+    if ((master_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     { //error processing;
         printf("Failed to establish socket.\n");
         return -1;
@@ -60,14 +60,14 @@ int main(int argc, char *argv[])
     saddr.sin_port = htons(server_port);
 
     /* bind listening socket */
-    if (bind(socketID, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
+    if (bind(master_socket, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
     {
         printf("I can't bind correctly.\n");
         return -1;
     }
 
     /* start listening */
-    if (listen(socketID, 32) < 0)
+    if (listen(master_socket, 32) < 0)
     {
         printf("I'm a bad listener.\n");
         return -1;
@@ -78,45 +78,118 @@ int main(int argc, char *argv[])
     int i;
     int select_result;
     fd_set master_bag;      // Hold all the connected sockets
+
     FD_ZERO(&master_bag); // Clear out memory
-    FD_SET(socketID, &master_bag);    // Add the new connection
+    FD_SET(master_socket, &master_bag);    // Add the new connection
+
     struct timeval timer = {0};
     timer.tv_sec = 0;
 
-    while (1)
+    const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
+	"Content-type: text/plain\r\n"			\
+	"Content-length: %d \r\n\r\n";
+
+    const char * notok_response = "HTTP/1.0 404 FILE NOT FOUND\r\n"	\
+	"Content-type: text/html\r\n\r\n"			\
+	"<html><body bgColor=black text=white>\n"		\
+	"<h2>404 FILE NOT FOUND</h2>\n"
+            "</body></html>\n";
+
+
+
+
+
+
+
+    char buf[BUFSIZE];
+    int current_socket;
+    int max_sd;
+
+    while(1)
     {
-        /* handle connections */
-        select_result = select(socketID + 1, &master_bag, NULL, NULL, &timer);
-        if (select_result >= 0)
+        //clear the socket set
+        FD_ZERO(&master_bag);
+
+        //add master socket to set
+        FD_SET(master_socket, &master_bag);
+        max_sd = master_socket;
+
+        //add child sockets to set
+        for ( i = 0 ; i < NUMBEROFMAXIMUMCONNECTIONS ; i++)
         {
-            //printf("I have something from socket %d\n", select_result);
-            for (i = 0; i < socketID + 1; i++)      // Check all connections in the SET to see if set
+            //socket descriptor
+            current_socket = sockets[i];
+
+            //if valid socket descriptor then add to read list
+            if(current_socket > 0)
+            FD_SET(current_socket , &master_bag);
+
+            //highest file descriptor number, need it for the select function
+            if(current_socket > max_sd)
+                max_sd = current_socket;
+        }
+
+        //wait for an activity on one of the sockets , timeout is NULL , so wait indefinitely
+        int activity = select( max_sd + 1, &master_bag , NULL , NULL , NULL);
+
+        if (activity < 0)
+        {
+            printf("select error");
+        }
+
+        //If something happened on the master socket , then its an incoming connection
+        if (FD_ISSET(master_socket, &master_bag))
+        {
+            int new_socket = accept(master_socket, NULL, NULL);
+            if (new_socket < 0)
             {
-                //printf("1");
+                perror("accept");
+                exit(EXIT_FAILURE);
+            }
 
-                if (FD_ISSET(i, &master_bag))
+            FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
+
+            //add new socket to array of sockets
+            for (i = 0; i < NUMBEROFMAXIMUMCONNECTIONS; i++)
+            {
+                //if position is empty
+                if( sockets[i] == 0 )
                 {
-                    printf("2");
+                    sockets[i] = new_socket;
+                    printf("Adding to list of sockets as %d\n" , i);
 
-                    if (i == socketID)      // The socket is already in the set
-                    {
-                        printf("3");
+                    break;
+                }
+            }
+        }
 
-                        if ((new_socket = accept(socketID, NULL, NULL)) < 0)
-                        {    // Error processing
-                            printf("4");
-                            fprintf(stderr, "Error while accepting the socket.\n");
-                            return -1;
-                        }
-                        FD_SET(new_socket, &master_bag);
-                    }
-                    else
-                    {
-                        printf("5");
-                        printf("Handling the connection\n");
-                        rc = handle_connection(new_socket);
-                        FD_CLR(i, &master_bag);
-                    }
+
+        for (i = 0; i < NUMBEROFMAXIMUMCONNECTIONS; i++)
+        {
+            int curr_sock = sockets[i];
+
+            if (FD_ISSET(curr_sock , &master_bag))
+            {
+
+                int len = recv(curr_sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
+                buf[len] = '\0';
+
+
+                FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
+
+                if(fileTheUserRequested != NULL)
+                {
+                    fseek(fileTheUserRequested, 0, SEEK_END);
+                    long sizeOfFile = ftell(fileTheUserRequested);
+                    rewind(fileTheUserRequested);
+                    char fileContent[sizeOfFile];
+                    fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
+
+                    write(curr_sock, fileContent, sizeOfFile);
+                }
+                else
+                {
+                    write(curr_sock, notok_response, 140);
                 }
             }
         }
