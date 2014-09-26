@@ -1,36 +1,32 @@
+/* INCLUDES */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>		/* See NOTES */
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
-#include <netinet/in.h>
 
+/* DEFINES */
 #define BUFSIZE 1024
 #define FILENAMESIZE 100
 #define NUMBEROFMAXIMUMCONNECTIONS 20
 
+/* FUNCTION HEADERS */
 int handle_connection(int sock);
-
 FILE *getFile(char *request);
 
+/* GLOBALS */
 char buf[BUFSIZE];
+int sockets[NUMBEROFMAXIMUMCONNECTIONS];
+fd_set master_bag;
 int current_socket;
 int max_socket;
-fd_set master_bag;      // Hold all the connected sockets
-
-int number_of_open_connection = 0;
-int sockets[NUMBEROFMAXIMUMCONNECTIONS];
 
 
 int main(int argc, char *argv[])
 {
     int server_port = -1;
-    int rc = 0;
     int master_socket;
 
     /* parse command line args */
@@ -75,7 +71,6 @@ int main(int argc, char *argv[])
         printf("I'm a bad listener.\n");
         return -1;
     }
-
 
     int i;
 
