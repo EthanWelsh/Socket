@@ -161,14 +161,21 @@ int handle_connection(int sock)
         char fileContent[sizeOfFile];
         fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
 
+        char headerResponse[80];
+        sprintf(headerResponse, ok_response_f, sizeOfFile);
+
+
         /* Then write it out to the client*/
+
+        write(sock, headerResponse, strlen(headerResponse));
+        write(sock, "\n", 1);
         write(sock, fileContent, sizeOfFile);
         return 0;
     }
     else
     {
         /* Send back a 404 response if the file can't be found */
-        write(sock, notok_response, 140);
+        write(sock, notok_response, strlen(notok_response));
         return -1;
     }
 }
