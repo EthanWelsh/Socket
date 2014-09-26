@@ -102,6 +102,7 @@ int main(int argc, char * argv[])
 					}
 					else
 					{
+						printf("Handling the connection\n");
 						rc = handle_connection(new_socket);
 						FD_CLR(i, &master_bag);
 					}
