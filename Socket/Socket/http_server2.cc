@@ -88,7 +88,7 @@ int main(int argc, char * argv[])
 		if(select_result>= 0)
 		{
 			printf("I have something from socket %d\n", select_result);
-			for (i=0; i< FD_SETSIZE; i++)	// Check all connections in the SET to see if set
+			for (i=0; i< socketID+1; i++)	// Check all connections in the SET to see if set
 			{
 				if(FD_ISSET(i, &master_bag))
 				{
