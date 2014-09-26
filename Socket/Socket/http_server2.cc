@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/types.h>          /* See NOTES */
+#include <sys/types.h>		/* See NOTES */
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -15,16 +15,17 @@
 #define NUMBEROFMAXIMUMCONNECTIONS 15
 
 int handle_connection(int sock);
-FILE* getFile(char* request);
+
+FILE *getFile(char *request);
 
 
 int number_of_open_connection = 0;
 int sockets[NUMBEROFMAXIMUMCONNECTIONS];
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
     int server_port = -1;
-    int rc          =  0;
+    int rc = 0;
     int socketID;
 
     /* parse command line args */
@@ -59,7 +60,7 @@ int main(int argc, char * argv[])
     saddr.sin_port = htons(server_port);
 
     /* bind listening socket */
-    if (bind(socketID, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
+    if (bind(socketID, (struct sockaddr *) &saddr, sizeof(saddr)) < 0)
     {
         printf("I can't bind correctly.\n");
         return -1;
@@ -74,42 +75,51 @@ int main(int argc, char * argv[])
 
     /* connection handling loop: wait to accept connection */
     int new_socket;
-	int i;
-	int select_result;
-    fd_set master_bag;	// Hold all the connected sockets
-	FD_ZERO(&master_bag); // Clear out memory
-	FD_SET(socketID, &master_bag);	// Add the new connection
-	struct timeval timer={0};
-	timer.tv_sec= 0;
-	while (1)
+    int i;
+    int select_result;
+    fd_set master_bag;      // Hold all the connected sockets
+    FD_ZERO(&master_bag); // Clear out memory
+    FD_SET(socketID, &master_bag);    // Add the new connection
+    struct timeval timer = {0};
+    timer.tv_sec = 0;
+
+    while (1)
     {
-		/* handle connections */
-        select_result= select(socketID+1, &master_bag, NULL, NULL, &timer);
-		if(select_result>= 0)
-		{
-			printf("I have something from socket %d\n", select_result);
-			for (i=0; i< socketID+1; i++)	// Check all connections in the SET to see if set
-			{
-				if(FD_ISSET(i, &master_bag))
-				{
-					if(i==socketID)	// The socket is already in the set
-					{
-						if((new_socket= accept(socketID, NULL, NULL))<0)
-						{	// Error processing
-							fprintf(stderr, "Error while accepting the socket.\n");
-							return -1;
-						}
-						FD_SET(new_socket, &master_bag);
-					}
-					else
-					{
-						printf("Handling the connection\n");
-						rc = handle_connection(new_socket);
-						FD_CLR(i, &master_bag);
-					}
-				}
-			}
-		}
+        /* handle connections */
+        select_result = select(socketID + 1, &master_bag, NULL, NULL, &timer);
+        if (select_result >= 0)
+        {
+            //printf("I have something from socket %d\n", select_result);
+            for (i = 0; i < socketID + 1; i++)      // Check all connections in the SET to see if set
+            {
+                //printf("1");
+
+                if (FD_ISSET(i, &master_bag))
+                {
+                    printf("2");
+
+                    if (i == socketID)      // The socket is already in the set
+                    {
+                        printf("3");
+
+                        if ((new_socket = accept(socketID, NULL, NULL)) < 0)
+                        {    // Error processing
+                            printf("4");
+                            fprintf(stderr, "Error while accepting the socket.\n");
+                            return -1;
+                        }
+                        FD_SET(new_socket, &master_bag);
+                    }
+                    else
+                    {
+                        printf("5");
+                        printf("Handling the connection\n");
+                        rc = handle_connection(new_socket);
+                        FD_CLR(i, &master_bag);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -119,27 +129,27 @@ int handle_connection(int sock)
     int len;
     char buf[BUFSIZE];
 
-    const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
-	"Content-type: text/plain\r\n"			\
-	"Content-length: %d \r\n\r\n";
+    const char *ok_response_f = "HTTP/1.0 200 OK\r\n"    \
+    "Content-type: text/plain\r\n"            \
+    "Content-length: %d \r\n\r\n";
 
-    const char * notok_response = "HTTP/1.0 404 FILE NOT FOUND\r\n"	\
-	"Content-type: text/html\r\n\r\n"			\
-	"<html><body bgColor=black text=white>\n"		\
-	"<h2>404 FILE NOT FOUND</h2>\n"
+    const char *notok_response = "HTTP/1.0 404 FILE NOT FOUND\r\n"    \
+    "Content-type: text/html\r\n\r\n"            \
+    "<html><body bgColor=black text=white>\n"        \
+    "<h2>404 FILE NOT FOUND</h2>\n"
             "</body></html>\n";
 
     /* first read loop -- get request and headers*/
-    char data_received[BUFSIZE*1024];
-    int next_posit = 0;	// track where to write data to
+    char data_received[BUFSIZE* 1024];
+    int next_posit = 0;    // track where to write data to
 
-    len = recv(sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
+    len = recv(sock, buf, sizeof(buf) - 1, 0);    // Do a receive of data for request
     buf[len] = '\0';
 
 
-    FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
+    FILE *fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
 
-    if(fileTheUserRequested != NULL)
+    if (fileTheUserRequested != NULL)
     {
         fseek(fileTheUserRequested, 0, SEEK_END);
         long sizeOfFile = ftell(fileTheUserRequested);
@@ -157,19 +167,19 @@ int handle_connection(int sock)
 
     do
     {
-        if (len > 0)	// If there is data being read in
+        if (len > 0)    // If there is data being read in
         {
-            memcpy((data_received+next_posit), buf, len);	// Copy into one location
-            next_posit+= len;
-            if(len< BUFSIZE)	// At the last block
+            memcpy((data_received + next_posit), buf, len);    // Copy into one location
+            next_posit += len;
+            if (len < BUFSIZE)    // At the last block
             {
-                break;	// Break out of the loop
+                break;    // Break out of the loop
             }
         }
 
-        len = recv(sock, buf, sizeof(buf)-1, 0);
+        len = recv(sock, buf, sizeof(buf) - 1, 0);
 
-    } while(len > 0);
+    } while (len > 0);
 
 
     /* close socket and free space */
@@ -185,11 +195,9 @@ int handle_connection(int sock)
     }
 }
 
-FILE* getFile(char* request)
+FILE *getFile(char *request)
 {
     int lengthOfRequest = strlen(request);
-
-
 
 
     char fileName[BUFSIZE];
@@ -199,9 +207,9 @@ FILE* getFile(char* request)
 
     int numberOfSlash = 0;
 
-    for(int i = 0; i < lengthOfRequest; i++)
+    for (int i = 0; i < lengthOfRequest; i++)
     {
-        if(request[i] == '/')
+        if (request[i] == '/')
         {
             numberOfSlash++;
         }
@@ -211,12 +219,12 @@ FILE* getFile(char* request)
     int indexOfFirstSpace = 0;
     int indexOfSecondSpace = 0;
 
-    if(numberOfSlash == 2)
+    if (numberOfSlash == 2)
     {
 
-        for(int i = 0; i < lengthOfRequest; i++)
+        for (int i = 0; i < lengthOfRequest; i++)
         {
-            if(request[i] == '/' && indexOfFirstSpace == 0)
+            if (request[i] == '/' && indexOfFirstSpace == 0)
             {
                 indexOfFirstSpace = i;
             }
@@ -228,9 +236,9 @@ FILE* getFile(char* request)
     }
     else
     {
-        for(int i = 0; i < lengthOfRequest; i++)
+        for (int i = 0; i < lengthOfRequest; i++)
         {
-            if(request[i] == ' ' && indexOfFirstSpace == 0)
+            if (request[i] == ' ' && indexOfFirstSpace == 0)
             {
                 indexOfFirstSpace = i;
             }
@@ -243,7 +251,7 @@ FILE* getFile(char* request)
 
     int j = 0;
 
-    for(int i = indexOfFirstSpace + 1; i<= indexOfSecondSpace; i++)
+    for (int i = indexOfFirstSpace + 1; i <= indexOfSecondSpace; i++)
     {
         fileName[j] = request[i];
         j++;
@@ -252,6 +260,4 @@ FILE* getFile(char* request)
     fileName[j - 1] = '\0';
     /* try opening the file */
     return fopen(fileName, "rb");
-
-
 }
