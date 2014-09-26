@@ -84,7 +84,7 @@ int main(int argc, char * argv[])
 	while (1)
     {
 		/* handle connections */
-        select_result= select(FD_SETSIZE, &master_bag, NULL, NULL, &timer);
+        select_result= select(socketID+1, &master_bag, NULL, NULL, &timer);
 		if(select_result>= 0)
 		{
 			printf("I have something from socket %d\n", select_result);
