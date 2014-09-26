@@ -15,16 +15,17 @@
 #define NUMBEROFMAXIMUMCONNECTIONS 20
 
 int handle_connection(int sock);
+
 FILE *getFile(char *request);
 
 char buf[BUFSIZE];
 int current_socket;
-int max_sd;
+int max_socket;
 fd_set master_bag;      // Hold all the connected sockets
-
 
 int number_of_open_connection = 0;
 int sockets[NUMBEROFMAXIMUMCONNECTIONS];
+
 
 int main(int argc, char *argv[])
 {
@@ -55,9 +56,7 @@ int main(int argc, char *argv[])
     }
 
     /* set server address*/
-
     struct sockaddr_in saddr;
-
     memset(&saddr, 0, sizeof(saddr));
     saddr.sin_family = AF_INET;
     saddr.sin_addr.s_addr = INADDR_ANY;
@@ -77,83 +76,54 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    /* connection handling loop: wait to accept connection */
-    int new_socket;
+
     int i;
-    int select_result;
 
-
-    FD_ZERO(&master_bag); // Clear out memory
-    FD_SET(master_socket, &master_bag);    // Add the new connection
-
-    struct timeval timer = {0};
-    timer.tv_sec = 0;
-
-
-    while(1)
+    while (1)
     {
-        //clear the socket set
+        /* Add the master socket which will sit and wait for additional connections to arrive */
         FD_ZERO(&master_bag);
-
-        //add master socket to set
         FD_SET(master_socket, &master_bag);
-        max_sd = master_socket;
+        max_socket = master_socket;
 
-        //add child sockets to set
-        for ( i = 0 ; i < NUMBEROFMAXIMUMCONNECTIONS ; i++)
+        /* Iterate through all connections and add everything to our FD_SET*/
+        for (i = 0; i < NUMBEROFMAXIMUMCONNECTIONS; i++)
         {
-            //socket descriptor
             current_socket = sockets[i];
-
-            //if valid socket descriptor then add to read list
-            if(current_socket > 0)
-            FD_SET(current_socket , &master_bag);
-
-            //highest file descriptor number, need it for the select function
-            if(current_socket > max_sd)
-                max_sd = current_socket;
+            if (current_socket > 0) FD_SET(current_socket, &master_bag);
+            if (current_socket > max_socket) max_socket = current_socket; // Update the max socket
         }
 
-        //wait for an activity on one of the sockets , timeout is NULL , so wait indefinitely
-        int activity = select( max_sd + 1, &master_bag , NULL , NULL , NULL);
+        /* Select on the FD SET */
+        select(max_socket + 1, &master_bag, NULL, NULL, NULL);
 
-        if (activity < 0)
-        {
-            printf("select error");
-        }
-
-        //If something happened on the master socket , then its an incoming connection
+        /* If a new connection is detected, add it to our list*/
         if (FD_ISSET(master_socket, &master_bag))
         {
+            /* Accept the new socket and store it*/
             int new_socket = accept(master_socket, NULL, NULL);
             if (new_socket < 0)
             {
-                perror("accept");
-                exit(EXIT_FAILURE);
+                fprintf(stderr, "Error while accepting the socket.\n");
+                return -1;
             }
 
-            FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
-
-            //add new socket to array of sockets
+            /* Put the socket in the next open slot in our array*/
             for (i = 0; i < NUMBEROFMAXIMUMCONNECTIONS; i++)
             {
-                //if position is empty
-                if( sockets[i] == 0 )
+                if (sockets[i] == 0)
                 {
                     sockets[i] = new_socket;
-                    printf("Adding to list of sockets as %d\n" , i);
-
                     break;
                 }
             }
         }
 
-
+        /* Step through the connections and handle them if they've registered any changes*/
         for (i = 0; i < NUMBEROFMAXIMUMCONNECTIONS; i++)
         {
-            int curr_sock = sockets[i];
-            handle_connection(curr_sock);
-
+            if (FD_ISSET(sockets[i], &master_bag))
+                handle_connection(sockets[i]);
         }
     }
 }
@@ -161,59 +131,59 @@ int main(int argc, char *argv[])
 
 int handle_connection(int sock)
 {
-    const char * ok_response_f = "HTTP/1.0 200 OK\r\n"	\
-	"Content-type: text/plain\r\n"			\
-	"Content-length: %d \r\n\r\n";
+    const char *ok_response_f = "HTTP/1.0 200 OK\r\n"    \
+    "Content-type: text/plain\r\n"            \
+    "Content-length: %d \r\n\r\n";
 
-    const char * notok_response = "HTTP/1.0 404 FILE NOT FOUND\r\n"	\
-	"Content-type: text/html\r\n\r\n"			\
-	"<html><body bgColor=black text=white>\n"		\
-	"<h2>404 FILE NOT FOUND</h2>\n"
+    const char *notok_response = "HTTP/1.0 404 FILE NOT FOUND\r\n"    \
+    "Content-type: text/html\r\n\r\n"            \
+    "<html><body bgColor=black text=white>\n"        \
+    "<h2>404 FILE NOT FOUND</h2>\n"
             "</body></html>\n";
 
-    if (FD_ISSET(sock, &master_bag))
+    /* Receive data and read it into the buffer */
+    int len = recv(sock, buf, sizeof(buf) - 1, 0);
+    buf[len] = '\0';
+
+    /* Gets the file pointer to the file user requested. NULL if not found. */
+    FILE *fileTheUserRequested = getFile(buf);
+
+    /* If the file actually exists... */
+    if (fileTheUserRequested != NULL)
     {
+        /* Figure out how big the file is*/
+        fseek(fileTheUserRequested, 0, SEEK_END);
+        long sizeOfFile = ftell(fileTheUserRequested);
+        rewind(fileTheUserRequested);
 
-        int len = recv(sock, buf, sizeof(buf)-1, 0);	// Do a receive of data for request
-        buf[len] = '\0';
+        /* Read the file into a buffer*/
+        char fileContent[sizeOfFile];
+        fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
 
+        /* Then write it out to the client*/
+        write(sock, fileContent, sizeOfFile);
+        return 0;
 
-        FILE* fileTheUserRequested = getFile(buf); // Gets the file pointer to the file user requested. NULL if not found.
-
-        if(fileTheUserRequested != NULL)
-        {
-            fseek(fileTheUserRequested, 0, SEEK_END);
-            long sizeOfFile = ftell(fileTheUserRequested);
-            rewind(fileTheUserRequested);
-            char fileContent[sizeOfFile];
-            fread(fileContent, 1, sizeOfFile, fileTheUserRequested);
-
-            write(sock, fileContent, sizeOfFile);
-            return 0;
-
-        }
-        else
-        {
-            write(sock, notok_response, 140);
-            return -1;
-        }
     }
-    return -1;
+    else
+    {
+        /* Send back a 404 response if the file can't be found */
+        write(sock, notok_response, 140);
+        return -1;
+    }
+
 }
 
 
 FILE *getFile(char *request)
 {
+    /* Parse file name and return file pointer from HTTP request*/
+    /* What follow is bad, bad, bad programming. All those of faint heart, avert your eyes */
     int lengthOfRequest = strlen(request);
-
-
     char fileName[BUFSIZE];
-
-    // If there is only one slash in the file. do stuff another way
-
-
     int numberOfSlash = 0;
 
+    /* Find to see if they included a leading / in the path*/
     for (int i = 0; i < lengthOfRequest; i++)
     {
         if (request[i] == '/')
@@ -222,13 +192,12 @@ FILE *getFile(char *request)
         }
     }
 
-
     int indexOfFirstSpace = 0;
     int indexOfSecondSpace = 0;
 
+    /* If they put their request in the "/index" format...*/
     if (numberOfSlash == 2)
     {
-
         for (int i = 0; i < lengthOfRequest; i++)
         {
             if (request[i] == '/' && indexOfFirstSpace == 0)
@@ -241,6 +210,7 @@ FILE *getFile(char *request)
             }
         }
     }
+    /* Otherwise if the request is in "/path/to/file.html" or "file.html"...*/
     else
     {
         for (int i = 0; i < lengthOfRequest; i++)
@@ -258,6 +228,7 @@ FILE *getFile(char *request)
 
     int j = 0;
 
+    /* Copy over the path into a separate buffer*/
     for (int i = indexOfFirstSpace + 1; i <= indexOfSecondSpace; i++)
     {
         fileName[j] = request[i];
@@ -265,6 +236,7 @@ FILE *getFile(char *request)
     }
 
     fileName[j - 1] = '\0';
+
     /* try opening the file */
     return fopen(fileName, "rb");
 }
